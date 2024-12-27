@@ -22,7 +22,7 @@ library(lme4)
 library(VGAM)
 
 # Read in the data:
-RCV <- read_xlsx("./01_data/responses.xlsx")
+RCV <- read_xlsx("Ranking Bad - Data (218 responses).xlsx")
 ```
 
 # **2. Data Cleaning & Pre-Processing**
@@ -585,7 +585,7 @@ summary(OLS_AMCE_L)
 
 -   For weighted analyses, we now use the same long-format dataset, just specifying weights within the model calls.
 
-## **Weighted OLS Model -- No Label:**
+## **Weighted OLS Model—No Label:**
 
 ```{r}
 # Weighted OLS for No Label condition:
@@ -595,7 +595,7 @@ summary(OLS_model_NL_weighted)
 
 **Summary**:
 
--   **Intercept (0.35592)**: Estimated probability of a white candidate being selected as the top choice, (since race_condition 'white' serves as the reference category).
+-   **Intercept (0.35592)**: Estimated probability of a white candidate being selected as the top choice, (since race_condition "white" serves as the reference category).
 
 -   **Coefficients for Race Conditions**:
 
@@ -636,11 +636,11 @@ summary(logit.1)
 
     -   **Indigenous (-0.3675)**: Being Indigenous decreases the log odds of being selected as the top choice by 0.368, compared to being white, though this effect is not statistically significant (p \> 0.05).
 
--   The **residual deviance (595.20)** compared to the null deviance (616.32) indicates that the model with race conditions fits the data better than the null model -- but still a lot of unexplained variability.
+-   The **residual deviance (595.20)** compared to the null deviance (616.32) indicates that the model with race conditions fits the data better than the null model, but still a lot of unexplained variance.
 
 -   **Note**: Create classification table for predicted/actual.
 
-# **11.1. Logistic Regression -- Label**
+# **11.1. Logistic Regression—Label**
 
 ```{r}
 # Logistic Regression:
@@ -649,25 +649,25 @@ logit.2 <- glm(selected ~ race_condition, data = filter(RCV_long, condition == "
 summary(logit.2)
 ```
 
-### Plot Predictions -- No Label:
+### Plot Predictions**—**No Label:
 
 ```{r}
 # Generate predicted probabilities plot:
-logit.1_plot <- plot_predictions(logit.1, condition = "race_condition")
+# logit.1_plot <- plot_predictions(logit.1, condition = "race_condition")
 # Plot:
-plot(logit.1_plot)
+# plot(logit.1_plot)
 ```
 
-### Plot Predictions -- Label:
+### Plot Predictions**—**Label:
 
 ```{r}
 # Generate predicted probabilities plot:
-logit.2_plot <- plot_predictions(logit.2, condition = "race_condition")
-
-plot(logit.2_plot)
+# logit.2_plot <- plot_predictions(logit.2, condition = "race_condition")
+# Plot:
+# plot(logit.2_plot)
 ```
 
-# **12.0. Ordinal Logistic Regression -- No Label**
+# **12.0. Ordinal Logistic Regression—No Label**
 
 ```{r}
 # Filtering for the NL condition:
@@ -688,13 +688,13 @@ summary(OLR_model.1)
 
 The sign of the coefficients reflects the direction of the association between predictor levels and the outcome variable.
 
--   **Positive coefficient**: Indicates that as the predictor variable increases, the log-odds of being in a higher category of the outcome variable increase. For our purposes -- where a lower rank means higher preference -- a positive coefficient for a group (e.g., black candidates) compared to the reference (e.g., white candidates) suggests that the group is less preferred or more likely to receive a lower preference ranking.
+-   **Positive coefficient**: Indicates that as the predictor variable increases, the log-odds of being in a higher category of the outcome variable increase. For our purposes**—**where a lower rank means higher preference**—**a positive coefficient for a group (e.g., black candidates) compared to the reference (e.g., white candidates) suggests that the group is less preferred or more likely to receive a lower preference ranking.
 
 -   **Negative coefficient**: Indicates that as the predictor variable increases, the log-odds of being in a lower category of the outcome variable increase. Thus, a negative coefficient would suggest higher preference.
 
 The positive coefficient for black candidates in the No Label condition suggests they are less preferred compared to white candidates (lower rank number = higher preference; inversely relates to the coefficient's sign).
 
-# **12.1. Ordinal Logistic Regression -- Label**
+# **12.1. Ordinal Logistic Regression—Label**
 
 ```{r}
 # Filtering for the L condition:
@@ -880,7 +880,20 @@ RCV_1
 table(RCV_1$pid1)
 ```
 
-We need a column for 'participant_ideology':
+-   We'll use RCV_1 to create a new column for participants' '4th' ranked candidate. Then we'll check if Liberals/Conservatives punish each other via Negative Partisanship:
+
+```{r}
+# Create a new column for the 4th ranked candidate's ideology
+RCV_1 <- RCV_1 %>%
+  mutate(fourth_ranked_candidate_ideology = case_when(
+    asian_L == 4 ~ Candidate1Party,
+    white_L == 4 ~ Candidate2Party,
+    black_L == 4 ~ Candidate3Party,
+    indigenous_L == 4 ~ Candidate4Party
+  ))
+```
+
+-   We need a column for 'participant_ideology':
 
 ```{r}
 RCV_1 <- RCV_1 %>%
@@ -899,20 +912,7 @@ RCV_1 <- RCV_1 %>%
   )
 ```
 
--   We'll use RCV_1 to create a new column for participants' '4th' ranked candidate. Then we'll check if Liberals/Conservatives punish each other via Negative Partisanship:
-
-```{r}
-# Create a new column for the 4th ranked candidate's ideology
-RCV_1 <- RCV_1 %>%
-  mutate(fourth_ranked_candidate_ideology = case_when(
-    asian_L == 4 ~ Candidate1Party,
-    white_L == 4 ~ Candidate2Party,
-    black_L == 4 ~ Candidate3Party,
-    indigenous_L == 4 ~ Candidate4Party
-  ))
-```
-
--   First, we add a column to indicate instances of negative partisanship -- defined as a participant ranking the opposing major party's candidate as their least preferred (a rank of 4):
+-   First, we add a column to indicate instances of negative partisanship**—**defined as a participant ranking the opposing major party's candidate as their least preferred (a rank of 4):
 
 ```{r}
 # Check ideology of participants (in 'pid1') and the ideology of their 4th ranked candidate. If the Liberal participant ranks a Conservative candidate as 4, or vice versa, it's marked as an instance of negative partisanship:
@@ -938,7 +938,7 @@ summary_negative_partisanship <- RCV_1 %>%
 summary_negative_partisanship
 ```
 
--   To statistically compare the rates of Negative Partisanship between Liberals and Conservatives -- directly comparing two proportions here -- it's suitable to use a non-parametric Fisher's Exact Test -- particularly useful for small sample sizes or when the expected frequencies in any of the cells of a contingency table are below 5.
+-   To statistically compare the rates of Negative Partisanship between Liberals and Conservatives**—**we're directly comparing two proportions here**—**it's suitable to use a non-parametric Fisher's Exact Test**—**particularly useful for small sample sizes or when the expected frequencies in any of the cells of a contingency table are below 5.
 
     Given the counts we have:
 
@@ -953,7 +953,7 @@ contingency_table <- matrix(c(10, 32, 9, 33), nrow = 2,
                                             c("Negative_Partisanship", "No_Negative_Partisanship")))
 
 # Performing Fisher's Exact Test:
-chi_squared_test_result <- chisq.test(contingency_table)
+fishers_test_result <- chisq.test(contingency_table)
 
 # Printing the result:
 print(fishers_test_result)
@@ -961,13 +961,11 @@ print(fishers_test_result)
 
 **Summary:**
 
-The result of Fisher's Exact Test for your data indicates the following:
-
 -   **P-value = 1**: This p-value suggests that there is no statistically significant evidence to reject the null hypothesis, which in this context means there is no significant difference between Conservative and Liberal participants in terms of their propensity to engage in negative partisanship, at least as far as the data and statistical power allow to detect.
 
 -   **Odds Ratio ≈ 1.144**: The odds ratio close to 1 further indicates that the likelihood of engaging in negative partisanship is similar between the two groups. The 95% confidence interval for the odds ratio spans from approximately 0.363 to 3.649, which includes 1 (indicating no effect). This wide interval suggests substantial uncertainty about the precise effect size, reflecting either a genuine lack of difference or insufficient data to conclusively detect a difference if it exists.
 
--   Based on this test, we can conclude that, within the limitations of our sample, there doesn't appear to be a significant difference in the likelihood of engaging in negative partisanship between participants who identify as Conservative and those who identify as Liberal. This could mean several things:
+-   Based on this test, we can conclude that, within the limitations of our sample, there doesn't appear to be a significant difference in the likelihood of engaging in negative partisanship between participants who identify as Conservative and those who identify as Liberal. This suggests either.
 
     -   **Similar Levels of Negative Partisanship**: Both groups may indeed engage in negative partisanship at similar rates.
 
